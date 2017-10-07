@@ -1,3 +1,88 @@
+
+[1, 2].each { println it }
+    
+
+preferences {
+    section {
+        input "switches", "capability.switch", multiple: true
+    }
+}
+
+def someEventHandler(evt) {
+    log.debug "will send the on() command to ${switches.size()} switches"
+    switches.on()
+}
+
+
+
+
+// get all events for this device since yesterday (maximum of 1000 events)
+myDevice.eventsSince(new Date() - 1)
+
+// get the most recent 20 events since yesterday
+myDevice.eventsSince(new Date() - 1, [max: 20])
+
+
+
+preferences {
+    section() {
+        input "tempSensor", "capability.temperatureMeasurement"
+    }
+}
+
+def someEventHandler(evt) {
+
+    def currentState = tempSensor.currentState("temperature")
+    log.debug "temperature value as a string: ${currentState.value}"
+    log.debug "time this temperature record was created: ${currentState.date}"
+
+    // shortcut notation - temperature measurement capability supports
+    // a "temperature" attribute. We then append "State" to it.
+    def anotherCurrentState = tempSensor.temperatureState
+    log.debug "temperature value as an integer: ${anotherCurrentState.integerValue}"
+}
+
+
+
+
+def initialize() {
+    // schedule execution every 5 minutes
+    runEvery5Minutes(handler)
+}
+
+def someEventHandler(evt) {
+    // remove the scheduled execution
+    unschedule(scheduledHandler)
+}
+
+def handler() {
+    log.debug "in handler, current time is ${new Date()}"
+}
+
+
+
+def initialize() {
+    // execute handlerMethod every hour on the half hour.
+    schedule("0 0 * * * ?", handlerMethod)
+}
+
+def handlerMethod() {
+    ...
+}
+
+
+
+def someEventHandler(evt) {
+    // execute handler in five minutes from now
+    runIn(60*5, handler)
+{
+
+def handler() {
+    theswitch.off()
+}
+
+
+
 catch(ArrayIndexOutOfBoundsException ex) {
          println(ex.toString());
          println(ex.getMessage());

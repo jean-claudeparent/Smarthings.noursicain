@@ -1,0 +1,102 @@
+/**
+ *  Home Logging
+ * 
+ *  Copyright 2017 Jean-Claude Parent
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License. You may obtain a copy of the License at:
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
+ *  for the specific language governing permissions and limitations under the License.
+ *
+ */
+ 
+definition(
+    name: "Home Logging",
+    namespace: "noursicain",
+    author: "Jean-Claude Parent",
+    description: "Log sensor data to IFTTT Naker channel.",
+    category: "My Apps",
+    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
+    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
+    iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
+
+
+preferences {
+	section("Log sensor data.") {
+    input "humiditysensors",title: "Wich humidity sensors?", "capability.relativeHumidityMeasurement", multiple: true, required:false
+    input "tempsensors", "capability.temperatureMeasurement", multiple: true, required:false
+	}
+    section("IFTTT maker channel.") {
+    input "IFTTTkey", "string", title: "IFTTT maker key", required: true
+    input "IFTTTevent", "string", title: "IFTTT event defined in your applet", required: true
+   
+    }
+    
+
+		// TODO: put inputs here
+	
+}
+
+def installed() {
+	log.debug  "Installed with settings: ${settings}"
+
+	initialize()
+}
+
+def updated() {
+	log.debug  "Updated with settings: ${settings}"
+
+	unsubscribe()
+	initialize()
+}
+
+def initialize() {
+	// TODO: subscribe to attributes, devices, locations, etc.
+    
+      dolog()
+      runIn(60, dolog)
+}
+
+// TODO: implement event handlers
+def dolog() {
+  log.debug "Call the web service"
+  try {
+    sendlog("testargs")
+    } catch (Exception exp)
+      {
+        log.error "error doing dolog. " + params + ex.toString()
+        sendPush("error doing dolog. " +  params + ex.toString())
+      }
+}
+/*
+** Log with the ifttt service
+*/
+def sendlog(TextData) { 
+
+def params =  [ 
+  uri: "https://maker.ifttt.com/trigger/" + IFTTTevent + "/with/key/" + IFTTTkey + "?value1=" + TextData]
+  
+/*  sendPushMessage("Still calling http service " + params) */
+  log.debug "Still calling http service " + params
+ 
+
+
+
+
+
+try { 
+   httpGet(params)
+   } catch(Exception ex) {
+   //Catch block 
+   log.error "the call to the web service failed. " + params + ex.toString()
+   log.debug "the call to the web service failed. " + params  + ex.toString()
+   
+   sendPush("the call to the web service failed. " +  params + ex.toString())
+
+}
+}
+
