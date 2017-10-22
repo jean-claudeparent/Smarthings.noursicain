@@ -58,36 +58,70 @@ def initialize() {
 	// TODO: subscribe to attributes, devices, locations, etc.
     
       dolog()
-      runIn(60, dolog)
+      runEvery1Hour(dolog)
 }
 
 // TODO: implement event handlers
 def dolog() {
   log.debug "Call the web service"
   try {
-    sendlog("testargs")
-    } catch (Exception exp)
+     doeachlog()
+    } catch (Exception ex)
       {
-        log.error "error doing dolog. " + params + ex.toString()
-        sendPush("error doing dolog. " +  params + ex.toString())
-      }
+        if (ex != null)
+        {
+          log.error "Error : "  + ex.toString()
+          sendPush("Error : " + ex.toString())
+        } else
+        {
+          log.error "Unknowb error"
+          sendPush("Unknowb error")
+        }
+        
 }
-/*
+}
+
+// log each device
+def doeachlog()
+{
+def webargs = ""
+// humidity
+humiditysensors.each
+{ 
+  
+  webargs = '"Humidity","' + it.displayName  + '","'  
+    
+   def varinspect = it.currentState("humidity")
+   if (varinspect == null) 
+   {
+     webargs = webargs + 'none","-1"'
+   } else 
+     {
+       webargs = webargs + varinspect.date  +'","' + varinspect.integerValue + '"'
+
+
+     
+     }
+  
+  
+    
+  sendlog(webargs) 
+  
+  
+}
+}    
+
+/* 
 ** Log with the ifttt service
 */
 def sendlog(TextData) { 
+TextData = java.net.URLEncoder.encode(TextData, "UTF-8")
 
 def params =  [ 
   uri: "https://maker.ifttt.com/trigger/" + IFTTTevent + "/with/key/" + IFTTTkey + "?value1=" + TextData]
   
 /*  sendPushMessage("Still calling http service " + params) */
   log.debug "Still calling http service " + params
- 
-
-
-
-
-
 try { 
    httpGet(params)
    } catch(Exception ex) {
